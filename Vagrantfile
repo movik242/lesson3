@@ -1,7 +1,7 @@
 
 MACHINES = {
-  :movik1 => {
-        :box_name => "movik1",
+  :movik => {
+        :box_name => "localhost",
         :ip_addr => '192.168.56.11',
 	:disks => {
 		:sata1 => {
@@ -14,12 +14,12 @@ MACHINES = {
 			:size => 2048, # Megabytes
 			:port => 2
 		},
-        :sata3 => {
-            :dfile => 'sata3.vdi',
-            :size => 1024, # Megabytes
-            :port => 3
-        },
-        :sata4 => {
+        	:sata3 => {
+            		:dfile => 'sata3.vdi',
+            		:size => 1024, # Megabytes
+            		:port => 3
+        	},
+        	:sata4 => {
 			:dfile => 'sata4.vdi',
 			:size => 1024, # Megabytes
 			:port => 4
