@@ -101,29 +101,60 @@ echo "`blkid | grep var: | awk '{print $2}'` /var ext4 defaults 0 0" >> /etc/fst
 
 ![Снимок экрана 2023-10-07 231833](https://github.com/movik242/lesson3/assets/143793993/ac7c1db4-c672-4006-9e91-f9ae641def74)
 
-```
+**3.Выделить том под /home**
 
+Выделяю под том /home 2G из VG - VolGroup00
+```
+lvcreate -n LogVol_Home -L 2G /dev/VolGroup00
+mkfs.xfs /dev/VolGroup00/LogVol_Home
+```
+Делаю по аналогии с /var
+```
+mount /dev/VolGroup00/LogVol_Home /mnt/
+cp -aR /home/* /mnt/
+rm -rf /home/*
+umount /mnt
+mount /dev/VolGroup00/LogVol_Home /home/
+echo "`blkid | grep Home | awk '{print $2}'` /home xfs defaults 0 0" >> /etc/fstab
+```
+Генерирую файлы в /home/
+```
+touch /home/file{1..20}
+```
+**4./home - сделать том для снапшотов**
 
+Снимаю снапшот
+```
+lvcreate -L 100MB -s -n home_snap /dev/VolGroup00/LogVol_Home
+```
+![Снимок экрана 2023-10-07 232926](https://github.com/movik242/lesson3/assets/143793993/7737c35f-456c-4302-869f-42021df57502)
 
+Удаляю часть файлов
+```
+rm -f /home/file{11..20}
+```
+Восстанавливаюсь из снапшота
+```
+umount /home
+lvconvert --merge /dev/VolGroup00/home_snap
+mount /home
+```
+**5.Прописать монтирование в fstab. Попробовать с разньми опциями и разными файловыми системами (на выбор)**
 
+Согласно заданию создаю, аналогично /LogVol_Home, который в xfs, /LogVol_Home2 размером 2G   
+```
+lvcreate -n LogVol_Home2 -L 2G /dev/VolGroup00
+mkfs.ext4 /dev/VolGroup00/LogVol_Home2
+mount /dev/VolGroup00/LogVol_Home2 /opt/
+cp -aR /home/* /opt/
+umount /opt
+mount /dev/VolGroup00/LogVol_Home2 /opt/
+echo "`blkid | grep Home2 | awk '{print $2}'` /opt ext4 defaults 0 0" >> /etc/fstab
+```
+Разница в файловой системе видна по занимаемому месту одними и теми же файлами
 
+![Снимок экрана 2023-10-08 090411](https://github.com/movik242/lesson3/assets/143793993/73a698d9-f65d-4c63-aac3-e99ed6369db1)
 
-С помощью gdebi установите ядро
-```
-sudo gdebi linux-headers*.deb linux-image-*.deb linux-modules-*.deb
-```
-Далее обновляем загрузчик
-```
-sudo update-grub
-```
-Перезагружаем виртуальную машину:
-```
-sudo reboot
-```
+**Вывод**
 
-После перезагрузки виртуальной машины проверяем обновилось ли ядро
-
-```
-uname -a
-```
-Вывод команды
+При выполнении ДЗ возникли значительные трудности при выполнении xfsdump, так как мне мешал каталог /vargant и chroot все время выпадал с ошибкой. Получилось раза с пятого)
